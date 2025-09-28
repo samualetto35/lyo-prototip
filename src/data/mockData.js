@@ -92,12 +92,12 @@ export const findParentByPhone = (phoneNumber) => {
   const cleanPhone = phoneNumber.replace(/\D/g, '');
   const formattedPhone = `+${cleanPhone}`;
 
-  // Admin kontrolü - 999 numarası
-  if (cleanPhone === '999') {
+  // Admin kontrolü - 999 numarası (Turkey +90 ile birlikte)
+  if (cleanPhone === '999' || cleanPhone === '90999') {
     return {
       type: 'admin',
       name: 'Güvenlik Asistanı',
-      phone: '+999',
+      phone: '+90999',
       students: studentsData // Tüm öğrencileri döndür
     };
   }

@@ -9,6 +9,11 @@ const Dashboard = ({ parent, onLogout }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showAbsenceManager, setShowAbsenceManager] = useState(false);
 
+  // Sayfa yüklendiğinde en üste scroll et
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     // İlk öğrenciyi seçili olarak ayarla
     if (parent.students.length > 0 && !selectedStudent) {
@@ -57,7 +62,7 @@ const Dashboard = ({ parent, onLogout }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-transparent sticky top-0 z-50">
+      <header className="bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 md:py-6">
             <div className="flex items-center">

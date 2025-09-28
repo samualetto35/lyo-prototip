@@ -32,6 +32,8 @@ function App() {
     setIsAuthenticated(true);
     // Parent bilgisini localStorage'a kaydet
     localStorage.setItem('currentParent', JSON.stringify(parent));
+    // Giriş sonrası sayfayı en üste scroll et
+    window.scrollTo(0, 0);
   };
 
   const handleLogout = async () => {

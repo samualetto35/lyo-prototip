@@ -1,14 +1,30 @@
-# Lyo Öğrenci Portal Prototipi
+# Lyo Veli Portal Prototipi
 
-Bu proje, öğrencilerin telefon numarası ile giriş yapabileceği ve Firebase SMS doğrulama kullanan bir öğrenci portalıdır.
+Bu proje, velilerin telefon numarası ile giriş yapabileceği ve Firebase SMS doğrulama kullanan bir veli portalıdır.
 
-## Özellikler
+## 🌐 **Canlı Demo**
+
+**https://lyo-prototip.vercel.app**
+
+## 🚀 **Hızlı Test**
+
+Demo modu aktif! Test telefon numaraları:
+- `+905559876543` - Ayşe Yılmaz (2 çocuk: Ahmet & Elif)
+- `+905554321098` - Fatma Demir (1 çocuk: Zeynep)
+- `+905551098765` - Sema Kaya (1 çocuk: Emre)
+
+**Demo OTP Kodu**: `123456`
+
+## ✨ **Özellikler**
 
 - 📱 **Responsive Tasarım**: Mobile, tablet ve desktop için optimize edilmiş
 - 🔐 **Güvenli Giriş**: Firebase SMS doğrulama sistemi
-- 👨‍👩‍👧‍👦 **Aile Desteği**: Kardeş öğrencileri görüntüleme
+- 👨‍👩‍👧‍👦 **Veli Odaklı**: Çocukları yönetme ve takip etme
 - 📊 **Detaylı Profil**: Öğrenci ve veli bilgileri
 - 🎓 **Akademik Bilgiler**: Program ve dönem takibi
+- 📅 **İzin Takvimi**: Görsel takvim ile izinli günler
+- ✏️ **İzin Yönetimi**: İnteraktif takvim ile izin ekleme/düzenleme
+- 📱 **SMS Onay**: İzin ekleme için SMS doğrulama
 
 ## Teknolojiler
 

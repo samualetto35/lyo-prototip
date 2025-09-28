@@ -11,6 +11,30 @@
   body {
     @apply bg-gradient-to-br from-primary-50 to-secondary-50 min-h-screen;
   }
+  
+  /* Remove focus outlines globally */
+  *:focus {
+    outline: none !important;
+  }
+  
+  /* Remove focus outlines from react-phone-number-input */
+  .PhoneInput {
+    outline: none !important;
+  }
+  
+  .PhoneInput input {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  
+  .PhoneInputCountrySelect {
+    outline: none !important;
+  }
+  
+  .PhoneInputCountrySelect:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
 
 @layer components {

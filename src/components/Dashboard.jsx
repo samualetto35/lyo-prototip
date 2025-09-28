@@ -57,20 +57,20 @@ const Dashboard = ({ parent, onLogout }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-2">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">L</span>
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">L</span>
               </div>
-              <h1 className="ml-3 text-xl font-semibold text-gray-900">
+              <h1 className="ml-2 text-lg font-semibold text-gray-900">
                 Lyo Portal
               </h1>
             </div>
             <button
               onClick={handleLogout}
-              className="btn-secondary"
+              className="btn-secondary text-sm px-4 py-2"
             >
               Çıkış Yap
             </button>

@@ -39,11 +39,17 @@ const PhoneInputComponent = ({ value, onChange, error, disabled }) => {
         .phone-input:focus {
           border-color: #3b82f6;
           outline: none;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          box-shadow: none;
         }
         
         .phone-input.error {
           border-color: #ef4444;
+        }
+        
+        /* Remove focus outline from all elements inside phone input */
+        .phone-input *:focus {
+          outline: none !important;
+          box-shadow: none !important;
         }
         
         /* Mobile responsive */

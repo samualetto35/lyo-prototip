@@ -8,6 +8,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [showSMSVerification, setShowSMSVerification] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const monthNames = [
@@ -122,8 +123,14 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
       if (otpCode === '123456') {
         // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
         onSave(student.id, selectedDates);
-        alert('İzinli günler başarıyla kaydedildi!');
-        onClose();
+        setShowSMSVerification(false);
+        setShowSuccess(true);
+        
+        // 2 saniye sonra otomatik kapat
+        setTimeout(() => {
+          setShowSuccess(false);
+          onClose();
+        }, 2000);
       } else {
         alert('Geçersiz doğrulama kodu');
       }
@@ -143,6 +150,30 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         onConfirm={handleConfirmAbsence}
         onReject={handleRejectAbsence}
       />
+    );
+  }
+
+  // Başarı popup'ı
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">✅</span>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            İzin Başarıyla Kaydedildi!
+          </h3>
+          <p className="text-gray-600 mb-4">
+            <strong>{student.firstName} {student.lastName}</strong> için {selectedDates.length} günlük izin talebi başarıyla gönderildi.
+          </p>
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+            <p className="text-sm text-green-700">
+              İzin talebiniz okul yönetimi tarafından değerlendirilecektir.
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -186,7 +217,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
             <button
               onClick={() => handleVerifySMS('123456')}
               disabled={isLoading}
-              className="w-full btn-primary disabled:opacity-50"
+              className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 text-sm"
             >
               {isLoading ? 'Doğrulanıyor...' : 'Doğrula ve Kaydet'}
             </button>
@@ -196,7 +227,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
                 setShowSMSVerification(false);
                 setShowConfirmation(true);
               }}
-              className="w-full btn-secondary"
+              className="w-full px-4 py-2 bg-white hover:bg-gray-50 text-primary-600 font-medium rounded-lg border border-primary-200 transition-colors duration-200 text-sm"
             >
               Geri Dön
             </button>
@@ -282,17 +313,17 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         )}
 
         {/* Butonlar */}
-        <div className="flex space-x-4">
+        <div className="flex space-x-3">
           <button
             onClick={handleSaveAbsence}
             disabled={selectedDates.length === 0}
-            className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
             İzinleri Kaydet ({selectedDates.length} gün)
           </button>
           <button
             onClick={onClose}
-            className="flex-1 btn-secondary"
+            className="flex-1 px-4 py-2 bg-white hover:bg-gray-50 text-primary-600 font-medium rounded-lg border border-primary-200 transition-colors duration-200 text-sm"
           >
             İptal
           </button>

@@ -4,7 +4,9 @@ Bu proje, velilerin telefon numarası ile giriş yapabileceği ve Firebase SMS d
 
 ## 🌐 **Canlı Demo**
 
-**https://lyo-prototip.vercel.app**
+**https://lyo-prototip.surge.sh**
+
+> ✅ **Herkes erişebilir** - Authentication gerektirmez!
 
 ## 🚀 **Hızlı Test**
 

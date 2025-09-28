@@ -11,6 +11,24 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // OTP input handler
+  const handleOtpChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Sadece rakam
+    if (value.length <= 6) {
+      setOtpCode(value);
+      setErrorMessage(''); // Hata mesajını temizle
+    }
+  };
+
+  // OTP otomatik doğrulama
+  useEffect(() => {
+    if (otpCode.length === 6) {
+      handleVerifySMS(otpCode);
+    }
+  }, [otpCode]);
 
   const monthNames = [
     'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -106,6 +124,8 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const handleConfirmAbsence = () => {
     setShowConfirmation(false);
     setShowSMSVerification(true);
+    setOtpCode('');
+    setErrorMessage('');
   };
 
   // İzin reddi
@@ -116,12 +136,13 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   };
 
   // SMS doğrulama onayla
-  const handleVerifySMS = async (otpCode) => {
+  const handleVerifySMS = async (code) => {
     setIsLoading(true);
+    setErrorMessage('');
     
     try {
       // Demo için sabit OTP kontrolü
-      if (otpCode === '123456') {
+      if (code === '123456') {
         // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
         onSave(student.id, selectedDates);
         
@@ -141,11 +162,11 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
           }, 3000);
         }, 2000);
       } else {
-        alert('Geçersiz doğrulama kodu');
+        setErrorMessage('Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
         setIsLoading(false);
       }
     } catch (error) {
-      alert('Bir hata oluştu');
+      setErrorMessage('Bir hata oluştu. Lütfen tekrar deneyin.');
       setIsLoading(false);
     }
   };
@@ -234,22 +255,24 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
           </div>
 
           <div className="space-y-4">
-            <div className="flex justify-center space-x-3">
-              {[1,2,3,4,5,6].map((digit, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength="1"
-                  className="w-12 h-12 text-center text-lg font-semibold border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                  placeholder="0"
-                />
-              ))}
+            <div>
+              <input
+                type="text"
+                value={otpCode}
+                onChange={handleOtpChange}
+                className="w-full h-12 text-center text-xl font-bold border border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none tracking-widest"
+                placeholder="123456"
+                maxLength="6"
+                disabled={isLoading}
+              />
+              {errorMessage && (
+                <p className="mt-2 text-sm text-red-600 text-center">{errorMessage}</p>
+              )}
             </div>
 
             <button
-              onClick={() => handleVerifySMS('123456')}
-              disabled={isLoading}
+              onClick={() => handleVerifySMS(otpCode)}
+              disabled={isLoading || otpCode.length !== 6}
               className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 text-sm"
             >
               {isLoading ? 'Doğrulanıyor...' : 'Doğrula ve Kaydet'}

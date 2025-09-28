@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/AdminDashboard';
 // import authService from './services/authService';
 import authService from './services/demoAuthService';
 
@@ -60,10 +61,17 @@ function App() {
   return (
     <div className="App">
       {isAuthenticated && currentParent ? (
-        <Dashboard 
-          parent={currentParent} 
-          onLogout={handleLogout} 
-        />
+        currentParent.type === 'admin' ? (
+          <AdminDashboard 
+            admin={currentParent} 
+            onLogout={handleLogout}
+          />
+        ) : (
+          <Dashboard 
+            parent={currentParent} 
+            onLogout={handleLogout} 
+          />
+        )
       ) : (
         <LandingPage onLogin={handleLogin} />
       )}

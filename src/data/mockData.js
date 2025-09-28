@@ -91,7 +91,17 @@ export const studentsData = [
 export const findParentByPhone = (phoneNumber) => {
   const cleanPhone = phoneNumber.replace(/\D/g, '');
   const formattedPhone = `+${cleanPhone}`;
-  
+
+  // Admin kontrolü - 999 numarası
+  if (cleanPhone === '999') {
+    return {
+      type: 'admin',
+      name: 'Güvenlik Asistanı',
+      phone: '+999',
+      students: studentsData // Tüm öğrencileri döndür
+    };
+  }
+
   // Anne olarak ara
   const motherStudents = studentsData.filter(student => student.motherPhone === formattedPhone);
   if (motherStudents.length > 0) {
@@ -102,7 +112,7 @@ export const findParentByPhone = (phoneNumber) => {
       students: motherStudents
     };
   }
-  
+
   // Baba olarak ara
   const fatherStudents = studentsData.filter(student => student.fatherPhone === formattedPhone);
   if (fatherStudents.length > 0) {
@@ -113,7 +123,7 @@ export const findParentByPhone = (phoneNumber) => {
       students: fatherStudents
     };
   }
-  
+
   return null;
 };
 

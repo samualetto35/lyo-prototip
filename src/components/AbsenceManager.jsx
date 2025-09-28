@@ -34,7 +34,25 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
     return selectedDates.includes(dateStr);
   };
 
+  const isToday = (day, month, year) => {
+    const today = new Date();
+    const currentDate = new Date(year, month, day);
+    return currentDate.toDateString() === today.toDateString();
+  };
+
+  const isPastDate = (day, month, year) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Bugünün başlangıcı
+    const currentDate = new Date(year, month, day);
+    return currentDate < today;
+  };
+
   const handleDateClick = (day, month, year) => {
+    // Geçmiş günler için izin verme
+    if (isPastDate(day, month, year)) {
+      return;
+    }
+
     const dateStr = formatDate(day, month, year);
     setSelectedDates(prev => 
       prev.includes(dateStr) 
@@ -299,14 +317,21 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
             {Array.from({ length: daysInMonth(currentMonth, currentYear) }, (_, i) => {
               const day = i + 1;
               const isSelected = isDateSelected(day, currentMonth, currentYear);
+              const isTodayDate = isToday(day, currentMonth, currentYear);
+              const isPast = isPastDate(day, currentMonth, currentYear);
               
               return (
                 <button
                   key={day}
                   onClick={() => handleDateClick(day, currentMonth, currentYear)}
+                  disabled={isPast}
                   className={`h-10 w-10 rounded-lg text-sm font-medium transition-colors ${
                     isSelected
                       ? 'bg-green-500 text-white hover:bg-green-600'
+                      : isTodayDate
+                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      : isPast
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -352,14 +377,22 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         </div>
 
         {/* Açıklama */}
-        <div className="mt-6 flex items-center justify-center space-x-6 text-sm">
+        <div className="mt-6 flex items-center justify-center space-x-4 text-sm flex-wrap gap-y-2">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-green-500 rounded"></div>
             <span className="text-gray-600">Seçili günler</span>
           </div>
           <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span className="text-gray-600">Bugün</span>
+          </div>
+          <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-gray-100 rounded"></div>
-            <span className="text-gray-600">Normal günler</span>
+            <span className="text-gray-600">Gelecek günler</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-gray-200 rounded"></div>
+            <span className="text-gray-600">Geçmiş günler</span>
           </div>
         </div>
       </div>

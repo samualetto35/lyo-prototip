@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import AbsenceConfirmation from './AbsenceConfirmation';
-import authService from '../services/demoAuthService';
 
 const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const [selectedDates, setSelectedDates] = useState([]);
@@ -12,161 +11,89 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const [showLoading, setShowLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  // OTP input handler
-  const handleOtpChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ''); // Sadece rakam
-    if (value.length <= 6) {
-      setOtpCode(value);
-      setErrorMessage(''); // Hata mesajını temizle
-    }
-  };
-
-  // OTP otomatik doğrulama
-  useEffect(() => {
-    if (otpCode.length === 6) {
-      handleVerifySMS(otpCode);
-    }
-  }, [otpCode]);
 
   const monthNames = [
     'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
     'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
   ];
-  
-  const dayNames = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
-  // Ayın ilk günü ve son günü
-  const firstDay = new Date(currentYear, currentMonth, 1);
-  const lastDay = new Date(currentYear, currentMonth + 1, 0);
-  const firstDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-
-  // Ay değiştirme
-  const changeMonth = (direction) => {
-    setCurrentMonth(prev => {
-      const newMonth = prev + direction;
-      if (newMonth < 0) {
-        setCurrentYear(currentYear - 1);
-        return 11;
-      } else if (newMonth > 11) {
-        setCurrentYear(currentYear + 1);
-        return 0;
-      }
-      return newMonth;
-    });
+  const daysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
   };
 
-  // Tarih seçimi
-  const handleDateClick = (day) => {
-    const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    
-    setSelectedDates(prev => {
-      if (prev.includes(dateString)) {
-        return prev.filter(date => date !== dateString);
-      } else {
-        return [...prev, dateString];
-      }
-    });
+  const getFirstDayOfMonth = (month, year) => {
+    return new Date(year, month, 1).getDay();
   };
 
-  // Gün render etme
-  const renderDays = () => {
-    const days = [];
-    const totalDays = lastDay.getDate();
-    
-    // Boş günler
-    for (let i = 0; i < firstDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="h-12 w-12"></div>);
-    }
-    
-    // Ayın günleri
-    for (let day = 1; day <= totalDays; day++) {
-      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const isSelected = selectedDates.includes(dateString);
-      const isToday = new Date().toDateString() === new Date(currentYear, currentMonth, day).toDateString();
-      const isPast = new Date(dateString) < new Date(new Date().setHours(0, 0, 0, 0));
-      
-      days.push(
-        <button
-          key={day}
-          onClick={() => !isPast && handleDateClick(day)}
-          disabled={isPast}
-          className={`h-12 w-12 flex items-center justify-center text-sm rounded-lg transition-all duration-200 ${
-            isPast
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : isSelected
-              ? 'bg-green-500 text-white hover:bg-green-600'
-              : isToday
-              ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
-              : 'hover:bg-gray-100 text-gray-700'
-          }`}
-        >
-          {day}
-        </button>
-      );
-    }
-    
-    return days;
+  const formatDate = (day, month, year) => {
+    return new Date(year, month, day).toISOString().split('T')[0];
   };
 
-  // İzin kaydetme başlat
-  const handleSaveAbsence = async () => {
+  const isDateSelected = (day, month, year) => {
+    const dateStr = formatDate(day, month, year);
+    return selectedDates.includes(dateStr);
+  };
+
+  const handleDateClick = (day, month, year) => {
+    const dateStr = formatDate(day, month, year);
+    setSelectedDates(prev => 
+      prev.includes(dateStr) 
+        ? prev.filter(date => date !== dateStr)
+        : [...prev, dateStr]
+    );
+  };
+
+  const handleSaveAbsence = () => {
     if (selectedDates.length === 0) {
-      alert('Lütfen en az bir gün seçin');
+      alert('Lütfen en az bir tarih seçin.');
       return;
     }
-
     setShowConfirmation(true);
   };
 
-  // İzin onayı
   const handleConfirmAbsence = () => {
     setShowConfirmation(false);
     setShowSMSVerification(true);
     setOtpCode('');
-    setErrorMessage('');
   };
 
-  // İzin reddi
   const handleRejectAbsence = () => {
     setShowConfirmation(false);
-    // Seçimleri temizle
     setSelectedDates([]);
   };
 
   // SMS doğrulama onayla
-  const handleVerifySMS = async (code) => {
+  const handleVerifySMS = async () => {
+    if (otpCode !== '123456') {
+      alert('Geçersiz doğrulama kodu. Demo için 123456 kullanın.');
+      return;
+    }
+
     setIsLoading(true);
-    setErrorMessage('');
     
     try {
-      // Demo için sabit OTP kontrolü
-      if (code === '123456') {
-        // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
-        onSave(student.id, selectedDates);
+      // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
+      onSave(student.id, selectedDates);
+      
+      // Loading ekranını göster
+      setShowSMSVerification(false);
+      setShowLoading(true);
+      
+      // Loading animasyonu için 2 saniye bekle
+      setTimeout(() => {
+        setShowLoading(false);
+        setShowSuccess(true);
         
-        // Loading ekranını göster
-        setShowSMSVerification(false);
-        setShowLoading(true);
-        
-        // Loading animasyonu için 2 saniye bekle
+        // 3 saniye sonra otomatik kapat
         setTimeout(() => {
-          setShowLoading(false);
-          setShowSuccess(true);
-          
-          // 3 saniye sonra otomatik kapat
-          setTimeout(() => {
-            setShowSuccess(false);
-            onClose();
-          }, 3000);
-        }, 2000);
-      } else {
-        setErrorMessage('Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
-        setIsLoading(false);
-      }
+          setShowSuccess(false);
+          onClose();
+        }, 3000);
+      }, 2000);
     } catch (error) {
-      setErrorMessage('Bir hata oluştu. Lütfen tekrar deneyin.');
+      alert('Bir hata oluştu');
+      setShowSMSVerification(false);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -245,12 +172,8 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               SMS Doğrulama
             </h3>
-            <p className="text-gray-600 mb-2">
-              İzin onayı için doğrulama gerekli
-            </p>
-            <p className="text-sm text-gray-500">
-              <span className="font-medium">{parent.phone}</span> numarasına gönderilen 
-              6 haneli kodu girin
+            <p className="text-gray-600">
+              {parent.phone} numarasına gönderilen doğrulama kodunu girin.
             </p>
           </div>
 
@@ -259,19 +182,19 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
               <input
                 type="text"
                 value={otpCode}
-                onChange={handleOtpChange}
-                className="w-full h-12 text-center text-xl font-bold border border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none tracking-widest"
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="w-full h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none tracking-widest"
                 placeholder="123456"
                 maxLength="6"
                 disabled={isLoading}
               />
-              {errorMessage && (
-                <p className="mt-2 text-sm text-red-600 text-center">{errorMessage}</p>
-              )}
+              <p className="text-center text-sm text-gray-500 mt-2">
+                Demo için: <strong>123456</strong>
+              </p>
             </div>
 
             <button
-              onClick={() => handleVerifySMS(otpCode)}
+              onClick={handleVerifySMS}
               disabled={isLoading || otpCode.length !== 6}
               className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 text-sm"
             >
@@ -282,85 +205,128 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
               onClick={() => {
                 setShowSMSVerification(false);
                 setShowConfirmation(true);
+                setOtpCode('');
               }}
               className="w-full px-4 py-2 bg-white hover:bg-gray-50 text-primary-600 font-medium rounded-lg border border-primary-200 transition-colors duration-200 text-sm"
             >
               Geri Dön
             </button>
-
-            <div className="text-center text-sm text-gray-500">
-              <p>Demo için kullanın: <strong>123456</strong></p>
-            </div>
           </div>
         </div>
       </div>
     );
   }
 
+  // Ana takvim ekranı
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            İzin Ekle/Değiştir - {student.firstName} {student.lastName}
-          </h2>
+      <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">
+              İzin Takvimi - {student.firstName} {student.lastName}
+            </h3>
+            <p className="text-sm text-gray-600">
+              İzinli olmasını istediğiniz günleri seçin
+            </p>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Takvim Kontrolleri */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => changeMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h3 className="text-xl font-semibold text-gray-900">
-            {monthNames[currentMonth]} {currentYear}
-          </h3>
-          <button
-            onClick={() => changeMonth(1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
 
         {/* Takvim */}
         <div className="mb-6">
-          {/* Gün başlıkları */}
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {dayNames.map(day => (
-              <div key={day} className="h-8 flex items-center justify-center text-sm font-medium text-gray-500">
+          {/* Ay ve Yıl Navigasyonu */}
+          <div className="flex justify-between items-center mb-4">
+            <button
+              onClick={() => {
+                if (currentMonth === 0) {
+                  setCurrentMonth(11);
+                  setCurrentYear(currentYear - 1);
+                } else {
+                  setCurrentMonth(currentMonth - 1);
+                }
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            <h4 className="text-lg font-semibold text-gray-900">
+              {monthNames[currentMonth]} {currentYear}
+            </h4>
+            
+            <button
+              onClick={() => {
+                if (currentMonth === 11) {
+                  setCurrentMonth(0);
+                  setCurrentYear(currentYear + 1);
+                } else {
+                  setCurrentMonth(currentMonth + 1);
+                }
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Takvim Grid */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(day => (
+              <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
                 {day}
               </div>
             ))}
           </div>
 
-          {/* Takvim günleri */}
-          <div className="grid grid-cols-7 gap-2">
-            {renderDays()}
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: getFirstDayOfMonth(currentMonth, currentYear) }, (_, i) => (
+              <div key={`empty-${i}`} className="h-10"></div>
+            ))}
+            
+            {Array.from({ length: daysInMonth(currentMonth, currentYear) }, (_, i) => {
+              const day = i + 1;
+              const isSelected = isDateSelected(day, currentMonth, currentYear);
+              
+              return (
+                <button
+                  key={day}
+                  onClick={() => handleDateClick(day, currentMonth, currentYear)}
+                  className={`h-10 w-10 rounded-lg text-sm font-medium transition-colors ${
+                    isSelected
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {day}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Seçili tarihler */}
+        {/* Seçili Tarihler */}
         {selectedDates.length > 0 && (
-          <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-            <h4 className="font-medium text-green-900 mb-2">Seçili İzinli Günler:</h4>
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-medium text-blue-900 mb-2">Seçili Tarihler ({selectedDates.length} gün):</h4>
             <div className="flex flex-wrap gap-2">
-              {selectedDates.map(date => (
-                <span key={date} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+              {selectedDates.map((date, index) => (
+                <span
+                  key={date}
+                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                >
                   {new Date(date).toLocaleDateString('tr-TR')}
                 </span>
               ))}
@@ -389,15 +355,11 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         <div className="mt-6 flex items-center justify-center space-x-6 text-sm">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-green-500 rounded"></div>
-            <span className="text-gray-600">Seçili İzin Günü</span>
+            <span className="text-gray-600">Seçili günler</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-primary-500 rounded"></div>
-            <span className="text-gray-600">Bugün</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-gray-400 rounded"></div>
-            <span className="text-gray-600">Geçmiş Günler</span>
+            <div className="w-4 h-4 bg-gray-100 rounded"></div>
+            <span className="text-gray-600">Normal günler</span>
           </div>
         </div>
       </div>

@@ -9,6 +9,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const [showSMSVerification, setShowSMSVerification] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const monthNames = [
@@ -123,20 +124,28 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
       if (otpCode === '123456') {
         // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
         onSave(student.id, selectedDates);
-        setShowSMSVerification(false);
-        setShowSuccess(true);
         
-        // 2 saniye sonra otomatik kapat
+        // Loading ekranını göster
+        setShowSMSVerification(false);
+        setShowLoading(true);
+        
+        // Loading animasyonu için 2 saniye bekle
         setTimeout(() => {
-          setShowSuccess(false);
-          onClose();
+          setShowLoading(false);
+          setShowSuccess(true);
+          
+          // 3 saniye sonra otomatik kapat
+          setTimeout(() => {
+            setShowSuccess(false);
+            onClose();
+          }, 3000);
         }, 2000);
       } else {
         alert('Geçersiz doğrulama kodu');
+        setIsLoading(false);
       }
     } catch (error) {
       alert('Bir hata oluştu');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -150,6 +159,30 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         onConfirm={handleConfirmAbsence}
         onReject={handleRejectAbsence}
       />
+    );
+  }
+
+  // Loading ekranı
+  if (showLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            İzin Kaydediliyor...
+          </h3>
+          <p className="text-gray-600">
+            <strong>{student.firstName} {student.lastName}</strong> için izin talebi işleniyor.
+          </p>
+          <div className="mt-4">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-primary-600 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 

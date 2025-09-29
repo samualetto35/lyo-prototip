@@ -9,6 +9,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
+  const [showSMSSuccess, setShowSMSSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [otpCode, setOtpCode] = useState('');
 
@@ -93,20 +94,26 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
       // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
       onSave(student.id, selectedDates);
       
-      // Loading ekranını göster
+      // SMS başarı popup'ını göster
       setShowSMSVerification(false);
-      setShowLoading(true);
+      setShowSMSSuccess(true);
       
-      // Loading animasyonu için 2 saniye bekle
+      // 2 saniye sonra loading ekranına geç
       setTimeout(() => {
-        setShowLoading(false);
-        setShowSuccess(true);
+        setShowSMSSuccess(false);
+        setShowLoading(true);
         
-        // 3 saniye sonra otomatik kapat
+        // Loading animasyonu için 2 saniye bekle
         setTimeout(() => {
-          setShowSuccess(false);
-          onClose();
-        }, 3000);
+          setShowLoading(false);
+          setShowSuccess(true);
+          
+          // 3 saniye sonra otomatik kapat
+          setTimeout(() => {
+            setShowSuccess(false);
+            onClose();
+          }, 3000);
+        }, 2000);
       }, 2000);
     } catch (error) {
       alert('Bir hata oluştu');
@@ -125,6 +132,30 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         onConfirm={handleConfirmAbsence}
         onReject={handleRejectAbsence}
       />
+    );
+  }
+
+  // SMS Başarı popup'ı
+  if (showSMSSuccess) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">✅</span>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            SMS Doğrulandı!
+          </h3>
+          <p className="text-gray-600 mb-4">
+            <strong>{student.firstName} {student.lastName}</strong> için izin talebi onaylandı.
+          </p>
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+            <p className="text-sm text-green-700">
+              İzin kaydediliyor...
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 

@@ -10,6 +10,7 @@ const LandingPage = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [parent, setParent] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
@@ -40,7 +41,14 @@ const LandingPage = ({ onLogin }) => {
       const result = await authService.verifyCode(otpCode);
       
       if (result.success) {
-        onLogin(parent);
+        // Demo başarı popup'ı göster
+        setShowSuccess(true);
+        
+        // 2 saniye sonra giriş yap
+        setTimeout(() => {
+          setShowSuccess(false);
+          onLogin(parent);
+        }, 2000);
       } else {
         setError(result.message);
       }
@@ -275,6 +283,28 @@ const LandingPage = ({ onLogin }) => {
 
       {/* reCAPTCHA Container */}
       <div id="recaptcha-container"></div>
+
+      {/* Success Popup */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">✅</span>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Başarılı!
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Demo modunda doğrulama tamamlandı.
+            </p>
+            <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+              <p className="text-sm text-green-700">
+                Giriş yapılıyor...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

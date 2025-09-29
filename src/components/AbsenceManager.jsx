@@ -332,7 +332,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
                       ? 'bg-blue-500 text-white hover:bg-blue-600'
                       : isPast
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                   }`}
                 >
                   {day}
@@ -387,7 +387,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
             <span className="text-gray-600">Bugün</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-gray-100 rounded"></div>
+            <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
             <span className="text-gray-600">Gelecek günler</span>
           </div>
           <div className="flex items-center space-x-2">

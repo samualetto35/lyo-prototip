@@ -9,7 +9,6 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
-  const [showSMSSuccess, setShowSMSSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [otpCode, setOtpCode] = useState('');
 
@@ -94,26 +93,20 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
       // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
       onSave(student.id, selectedDates);
       
-      // SMS başarı popup'ını göster
+      // SMS ekranını temizle ve loading ekranına geç
       setShowSMSVerification(false);
-      setShowSMSSuccess(true);
+      setShowLoading(true);
       
-      // 2 saniye sonra loading ekranına geç
+      // Loading animasyonu için 2 saniye bekle
       setTimeout(() => {
-        setShowSMSSuccess(false);
-        setShowLoading(true);
+        setShowLoading(false);
+        setShowSuccess(true);
         
-        // Loading animasyonu için 2 saniye bekle
+        // 3 saniye sonra otomatik kapat
         setTimeout(() => {
-          setShowLoading(false);
-          setShowSuccess(true);
-          
-          // 3 saniye sonra otomatik kapat
-          setTimeout(() => {
-            setShowSuccess(false);
-            onClose();
-          }, 3000);
-        }, 2000);
+          setShowSuccess(false);
+          onClose();
+        }, 3000);
       }, 2000);
     } catch (error) {
       alert('Bir hata oluştu');
@@ -132,30 +125,6 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         onConfirm={handleConfirmAbsence}
         onReject={handleRejectAbsence}
       />
-    );
-  }
-
-  // SMS Başarı popup'ı
-  if (showSMSSuccess) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">✅</span>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            SMS Doğrulandı!
-          </h3>
-          <p className="text-gray-600 mb-4">
-            <strong>{student.firstName} {student.lastName}</strong> için izin talebi onaylandı.
-          </p>
-          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-            <p className="text-sm text-green-700">
-              İzin kaydediliyor...
-            </p>
-          </div>
-        </div>
-      </div>
     );
   }
 
@@ -213,41 +182,54 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               SMS Doğrulama
             </h3>
+            <p className="text-gray-600 mb-1">
+              {parent.phone} numarasına gönderilen
+            </p>
             <p className="text-gray-600">
-              {parent.phone} numarasına gönderilen doğrulama kodunu girin.
+              6 haneli doğrulama kodunu girin
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <input
                 type="text"
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none tracking-widest"
+                className="w-full h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:outline-none tracking-widest shadow-sm transition-all duration-200"
                 placeholder="123456"
                 maxLength="6"
                 disabled={isLoading}
               />
-              <p className="text-center text-sm text-gray-500 mt-2">
-                Demo için: <strong>123456</strong>
-              </p>
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-center text-sm text-blue-700">
+                  <span className="font-semibold">Demo için kullanın:</span> 
+                  <span className="font-bold text-lg ml-2">123456</span>
+                </p>
+              </div>
             </div>
 
             <button
               onClick={handleVerifySMS}
               disabled={isLoading || otpCode.length !== 6}
-              className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 text-sm"
+              className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
-              {isLoading ? 'Doğrulanıyor...' : 'Doğrula ve Kaydet'}
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Doğrulanıyor...
+                </div>
+              ) : (
+                'Doğrula ve Kaydet'
+              )}
             </button>
 
             <button
@@ -256,7 +238,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
                 setShowConfirmation(true);
                 setOtpCode('');
               }}
-              className="w-full px-4 py-2 bg-white hover:bg-gray-50 text-primary-600 font-medium rounded-lg border border-primary-200 transition-colors duration-200 text-sm"
+              className="w-full px-6 py-3 bg-white hover:bg-gray-50 text-primary-600 font-medium rounded-xl border-2 border-primary-200 hover:border-primary-300 transition-all duration-200"
             >
               Geri Dön
             </button>

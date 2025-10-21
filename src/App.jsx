@@ -9,6 +9,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentParent, setCurrentParent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     // Sayfa yüklendiğinde Firebase auth durumunu kontrol et
@@ -24,6 +25,12 @@ function App() {
       }
       setIsLoading(false);
     };
+
+    // Dark mode tercihini localStorage'dan yükle
+    const savedDarkMode = localStorage.getItem('isDarkMode');
+    if (savedDarkMode !== null) {
+      setIsDarkMode(JSON.parse(savedDarkMode));
+    }
 
     checkAuthState();
   }, []);
@@ -44,6 +51,12 @@ function App() {
     localStorage.removeItem('currentParent');
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem('isDarkMode', JSON.stringify(newDarkMode));
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center">
@@ -59,21 +72,29 @@ function App() {
   }
 
   return (
-    <div className="App">
+    <div className={`App transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       {isAuthenticated && currentParent ? (
         currentParent.type === 'admin' ? (
           <AdminDashboard 
             admin={currentParent} 
             onLogout={handleLogout}
+            isDarkMode={isDarkMode}
+            toggleDarkMode={toggleDarkMode}
           />
         ) : (
           <Dashboard 
             parent={currentParent} 
-            onLogout={handleLogout} 
+            onLogout={handleLogout}
+            isDarkMode={isDarkMode}
+            toggleDarkMode={toggleDarkMode}
           />
         )
       ) : (
-        <LandingPage onLogin={handleLogin} />
+        <LandingPage 
+          onLogin={handleLogin}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
+        />
       )}
     </div>
   );

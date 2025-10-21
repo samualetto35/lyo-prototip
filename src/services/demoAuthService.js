@@ -10,7 +10,7 @@ class DemoAuthService {
   // Veli telefon numarasını veritabanında kontrol et
   async checkPhoneNumber(phoneNumber) {
     try {
-      const parent = findParentByPhone(phoneNumber);
+      const parent = await findParentByPhone(phoneNumber);
       
       if (parent) {
         return {

@@ -1,6 +1,12 @@
 import React from 'react';
 
 const AbsenceConfirmation = ({ student, selectedDates, onConfirm, onReject }) => {
+  // Mevcut izinli günleri kontrol et
+  const currentAbsenceDates = student.absenceDates || [];
+  
+  // Eklenen ve kaldırılan tarihleri ayır
+  const addedDates = selectedDates.filter(date => !currentAbsenceDates.includes(date));
+  const removedDates = selectedDates.filter(date => currentAbsenceDates.includes(date));
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('tr-TR', {
       weekday: 'long',
@@ -40,34 +46,74 @@ const AbsenceConfirmation = ({ student, selectedDates, onConfirm, onReject }) =>
           <p className="text-xs text-gray-600">{student.program}</p>
         </div>
 
-        {/* Seçili Tarihler */}
-        <div className="mb-4">
-          <h4 className="font-medium text-gray-900 mb-2">İzinli Olması İstenen Tarihler:</h4>
-          <div className="space-y-1">
-            {selectedDates.map((date, index) => (
-              <div key={date} className="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200">
-                <div className="flex items-center space-x-2">
-                  <span className="w-5 h-5 bg-blue-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
-                    {index + 1}
-                  </span>
-                  <span className="font-medium text-blue-900 text-sm">{formatDate(date)}</span>
+        {/* Eklenen Tarihler */}
+        {addedDates.length > 0 && (
+          <div className="mb-4">
+            <h4 className="font-medium text-gray-900 mb-2">Yeni İzin Eklenen Tarihler:</h4>
+            <div className="space-y-1">
+              {addedDates.map((date, index) => (
+                <div key={date} className="flex items-center justify-between p-2 bg-green-50 rounded border border-green-200">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-5 h-5 bg-green-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
+                      +
+                    </span>
+                    <span className="font-medium text-green-900 text-sm">{formatDate(date)}</span>
+                  </div>
+                  <span className="text-xs text-green-700 font-mono">{formatDateShort(date)}</span>
                 </div>
-                <span className="text-xs text-blue-700 font-mono">{formatDateShort(date)}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Toplam İzin Süresi */}
-        <div className="bg-yellow-50 p-3 rounded-lg mb-4 border border-yellow-200">
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-yellow-900 text-sm">Toplam İzin Süresi:</span>
-            <span className="text-base font-bold text-yellow-700">
-              {selectedDates.length} gün
-            </span>
+        {/* Kaldırılan Tarihler */}
+        {removedDates.length > 0 && (
+          <div className="mb-4">
+            <h4 className="font-medium text-gray-900 mb-2">İzin Kaldırılan Tarihler:</h4>
+            <div className="space-y-1">
+              {removedDates.map((date, index) => (
+                <div key={date} className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-5 h-5 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
+                      -
+                    </span>
+                    <span className="font-medium text-red-900 text-sm">{formatDate(date)}</span>
+                  </div>
+                  <span className="text-xs text-red-700 font-mono">{formatDateShort(date)}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <p className="text-xs text-yellow-700 mt-1">
-            Bu tarihlerde öğrenci okula gelmeyecektir.
+        )}
+
+        {/* Özet */}
+        <div className="bg-yellow-50 p-3 rounded-lg mb-4 border border-yellow-200">
+          <div className="space-y-2">
+            {addedDates.length > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-yellow-900 text-sm">Yeni İzin Eklenen:</span>
+                <span className="text-base font-bold text-green-700">
+                  {addedDates.length} gün
+                </span>
+              </div>
+            )}
+            {removedDates.length > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-yellow-900 text-sm">İzin Kaldırılan:</span>
+                <span className="text-base font-bold text-red-700">
+                  {removedDates.length} gün
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-yellow-900 text-sm">Toplam İzin Süresi:</span>
+              <span className="text-base font-bold text-yellow-700">
+                {currentAbsenceDates.length + addedDates.length - removedDates.length} gün
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-yellow-700 mt-2">
+            Bu değişiklikler SMS doğrulama sonrası uygulanacaktır.
           </p>
         </div>
 
@@ -75,7 +121,7 @@ const AbsenceConfirmation = ({ student, selectedDates, onConfirm, onReject }) =>
         <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
           <p className="text-xs text-gray-700 leading-relaxed">
             <strong>Veli olarak {student.firstName} {student.lastName}</strong> için yukarıda belirtilen 
-            tarihlerde izinli olmasını kabul ediyorum. Bu izinlerin okul yönetimi tarafından 
+            izin değişikliklerini kabul ediyorum. Bu değişikliklerin okul yönetimi tarafından 
             onaylanması gerekmektedir.
           </p>
         </div>

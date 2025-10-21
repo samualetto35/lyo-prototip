@@ -26,7 +26,11 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   };
 
   const formatDate = (day, month, year) => {
-    return new Date(year, month, day).toISOString().split('T')[0];
+    const date = new Date(year, month, day);
+    const yearStr = date.getFullYear();
+    const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(date.getDate()).padStart(2, '0');
+    return `${yearStr}-${monthStr}-${dayStr}`;
   };
 
   const isDateSelected = (day, month, year) => {
@@ -47,18 +51,51 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
     return currentDate < today;
   };
 
+  // Mevcut izinli günleri kontrol et
+  const isExistingAbsence = (day, month, year) => {
+    const dateStr = formatDate(day, month, year);
+    return student.absenceDates && student.absenceDates.includes(dateStr);
+  };
+
   const handleDateClick = (day, month, year) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDate = new Date(year, month, day);
+    const dateStr = formatDate(day, month, year);
+    
+    console.log('Date clicked:', { day, month, year, dateStr, currentDate });
+    
+    // Bugün için sadece ekleme yapabilir
+    if (currentDate.toDateString() === today.toDateString()) {
+      const isExisting = isExistingAbsence(day, month, year);
+      
+      if (!isExisting) {
+        // Bugün için sadece ekleme
+        setSelectedDates(prev => {
+          const newDates = prev.includes(dateStr) 
+            ? prev.filter(date => date !== dateStr)
+            : [...prev, dateStr];
+          console.log('Today - New dates:', newDates);
+          return newDates;
+        });
+      }
+      return;
+    }
+    
     // Geçmiş günler için izin verme
     if (isPastDate(day, month, year)) {
       return;
     }
 
-    const dateStr = formatDate(day, month, year);
-    setSelectedDates(prev => 
-      prev.includes(dateStr) 
+    const isExisting = isExistingAbsence(day, month, year);
+    
+    setSelectedDates(prev => {
+      const newDates = prev.includes(dateStr) 
         ? prev.filter(date => date !== dateStr)
-        : [...prev, dateStr]
-    );
+        : [...prev, dateStr];
+      console.log('Future - New dates:', newDates, 'isExisting:', isExisting);
+      return newDates;
+    });
   };
 
   const handleSaveAbsence = () => {
@@ -90,8 +127,24 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
     setIsLoading(true);
     
     try {
-      // Başarılı - veritabanına kaydet (demo için sadece state güncelle)
-      onSave(student.id, selectedDates);
+      // Mevcut izinli günleri al
+      const currentAbsenceDates = student.absenceDates || [];
+      
+      // Seçili tarihleri işle
+      let newAbsenceDates = [...currentAbsenceDates];
+      
+      selectedDates.forEach(date => {
+        if (currentAbsenceDates.includes(date)) {
+          // Mevcut izinli günü kaldır
+          newAbsenceDates = newAbsenceDates.filter(d => d !== date);
+        } else {
+          // Yeni izin ekle
+          newAbsenceDates.push(date);
+        }
+      });
+      
+      // Başarılı - veritabanına kaydet
+      onSave(student.id, newAbsenceDates);
       
       // SMS ekranını temizle ve loading ekranına geç
       setShowSMSVerification(false);
@@ -251,11 +304,11 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
   // Ana takvim ekranı
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl p-4 max-w-xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               İzin Takvimi - {student.firstName} {student.lastName}
             </h3>
             <p className="text-sm text-gray-600">
@@ -273,7 +326,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
         </div>
 
         {/* Takvim */}
-        <div className="mb-6">
+        <div className="mt-6 mb-6">
           {/* Ay ve Yıl Navigasyonu */}
           <div className="flex justify-between items-center mb-4">
             <button
@@ -332,6 +385,7 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
               const isSelected = isDateSelected(day, currentMonth, currentYear);
               const isTodayDate = isToday(day, currentMonth, currentYear);
               const isPast = isPastDate(day, currentMonth, currentYear);
+              const isExisting = isExistingAbsence(day, currentMonth, currentYear);
               
               return (
                 <button
@@ -345,6 +399,8 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
                       ? 'bg-blue-500 text-white hover:bg-blue-600'
                       : isPast
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : isExisting
+                      ? 'bg-white text-green-800 border-2 border-green-500 hover:bg-green-50'
                       : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                   }`}
                 >
@@ -360,14 +416,17 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
           <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <h4 className="font-medium text-blue-900 mb-2">Seçili Tarihler ({selectedDates.length} gün):</h4>
             <div className="flex flex-wrap gap-2">
-              {selectedDates.map((date, index) => (
-                <span
-                  key={date}
-                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                >
-                  {new Date(date).toLocaleDateString('tr-TR')}
-                </span>
-              ))}
+              {selectedDates.map((date, index) => {
+                console.log('Selected date:', date, 'Formatted:', new Date(date).toLocaleDateString('tr-TR'));
+                return (
+                  <span
+                    key={date}
+                    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                  >
+                    {new Date(date).toLocaleDateString('tr-TR')}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -377,23 +436,27 @@ const AbsenceManager = ({ student, parent, onClose, onSave }) => {
           <button
             onClick={handleSaveAbsence}
             disabled={selectedDates.length === 0}
-            className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="flex-1 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
           >
             İzinleri Kaydet ({selectedDates.length} gün)
           </button>
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 bg-white hover:bg-gray-50 text-primary-600 font-medium rounded-lg border border-primary-200 transition-colors duration-200 text-sm"
+            className="flex-1 px-3 py-1.5 bg-white hover:bg-gray-50 text-primary-600 font-medium rounded-lg border border-primary-200 transition-colors duration-200 text-xs"
           >
             İptal
           </button>
         </div>
 
         {/* Açıklama */}
-        <div className="mt-6 flex items-center justify-center space-x-4 text-sm flex-wrap gap-y-2">
+        <div className="mt-6 flex items-center justify-center space-x-3 text-xs flex-wrap gap-y-1">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-green-500 rounded"></div>
             <span className="text-gray-600">Seçili günler</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-white border-2 border-green-500 rounded"></div>
+            <span className="text-gray-600">Mevcut izinli günler</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-blue-500 rounded"></div>
